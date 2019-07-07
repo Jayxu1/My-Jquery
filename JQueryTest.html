@@ -1,0 +1,181 @@
+	<html>
+<head>
+	<title></title>
+</head>
+<body>
+<!--<script src="./jquery.js"></script>!-->
+
+<div class = 'demo'>1</div>
+
+<script>
+	(function(){
+
+		function jQuery(selector){ //jQuery的函数，参数为选择的html
+			return new jQuery.prototype.init(selector); //返回 init这个函数
+		}
+
+		
+
+		jQuery.prototype.init = function(selector){ //init函数
+			//选出don并且包装成jquery对象 返回
+			//这个函数暂时写调取id class
+			
+			this.length = 0;
+			if(selector == null){
+				return this;
+			}
+
+			if(typeof selector == 'string' && selector.indexOf('.') != -1){ //selector里面有.这个符号的话
+				var dom = document.getElementsByClassName(selector.slice(1)); //去掉.这个符号 后面的就是html给到dom
+			}else if(typeof selector == 'string' && selector.indexOf('#') != -1){//selector里面有#这个符号的话
+				var dom = document.getElementById(selector.slice(1));  //去掉#这个符号 后面的就是html给到dom
+			}
+
+			if(selector instanceof Element || dom.length == undefined){ //如果dom的长度为undefined
+				this[0] = dom || selector;   //直接把dom给调用的唯一一个html
+				this.length++;
+			}else{
+				//基础铺垫
+				for (var i = 0; i < dom.length; i++){//for循环里面的每一个dom
+					this[i] = dom[i]; 
+					this.length++;
+				}
+			}
+		}
+
+		
+
+		//css
+		jQuery.prototype.css = function (config){//config相当于传的css对象
+			//循环操作
+			for(var i = 0; i < this.length; i++){//for循环调用这个函数的函数中的每一个dom
+				for(var attr in config){ //
+					this[i].style[attr] = config[attr];//调用的html的style赋样式值
+				}
+			}
+			return this; //链式操作 例如.css().css()
+		}
+		
+
+		//pushStack
+		jQuery.prototype.pushStack = function(dom){
+			//如果是jq对象就操作
+			if(dom.constructor != jQuery){
+				dom = jQuery(dom);
+			}	
+				dom.prevObject = this;
+				return dom;
+		}
+
+		
+
+		//get()
+		jQuery.prototype.get = function(num){
+			return num != null ? (num >= 0 ? this[num] : this[num + this.length]) : [].slice.call(this,0);
+			/*if (num != null){
+				if(num >= 0){
+					return this [num];
+				}else{
+					return this[num + this.length];
+				}
+			}else{
+				return [].slice.call(this,0);
+			}*/
+		}
+
+
+		
+		//eq()
+		jQuery.prototype.eq = function(num){
+			var dom = num != null ? (num >= 0 ? this[num] : this[num + this.length]) : null;
+			//return jQuery(dom);
+			return this.pushStack(dom);
+		}
+
+
+
+		//add
+		jQuery.prototype.add = function(selector){
+			var curObj = jQuery(selector);
+			var baseObj = this;
+			var newObj = jQuery();
+
+			for(var i = 0; i < curObj.length; i++){
+				newObj[newObj.length++] = curObj[i];
+			}
+			for(var i = 0; i < baseObj.length; i++){
+				newObj[newObj.length++] = baseObj[i];
+			}
+			//
+			this.pushStack(newObj);
+			return newObj;
+		}
+		//end
+		jQuery.prototype.end = function(){
+			return this.prevObject;
+		}
+
+		jQuery.prototype.myOn = function(type, handle){ //绑定自定义事件
+			for(var i = 0; i < this.length; i++){
+				this[0].cacheEvent = {};
+				if(!this[i].cacheEvent){
+					this[i].cacheEvent = {};
+				}
+				if(!this[i].cacheEvent[type]){
+					this[i].cacheEvent[type] = [handle];
+				}else{
+					this[i].cacheEvent[type].push(handle);
+				}
+			}
+		}
+		jQuery.prototype.trigger = function(type){ //只适用于自定义事件. 这2个不是特别懂
+			var params = arguments.length > 1 ? [].slice.call(arguments,1) : [];
+			var self = this;
+			for(var i = 0; i < this.length; i++){
+				if(this[i].cacheEvent[type]){
+					this[i].cacheEvent[type].forEach(function(ele,index){
+						ele.apply(self,params);
+					});
+				}
+			}
+		}
+
+		jQuery.prototype.queue = function(){ //不是特别懂
+			var queueObj = this;
+			var queueName = arguments[0] || 'fx';
+			var addFunc = arguments[1] || null;
+			var len = arguments.length;
+
+			if(len == 1){//获取队列
+				return queueObj[0][queueName];
+			}
+			//添加队列，或者往已有队列中添加内容
+			queueObj[0][queueName] == undefined ? queueObj[0][queueName] = [addFunc] : queueObj[0][queueName].push(addFunc);
+			return this;
+		}
+
+		jQuery.prototype.dequeue = function(type){ //不是特别懂
+			var self = this;
+			var queueName = arguments[0] || 'fx';
+			var queueArr = this.queue(queueName);
+			var currFunc = queueArr.shift();
+			if(currFunc == undefined){
+				return
+			}
+			var next = function(){
+				self.dequeue(queueName);
+			}
+			currFunc(next);
+			return this;
+
+		}
+
+		jQuery.prototype.init.prototype = jQuery.prototype;
+		window.$ = window.jQuery = jQuery;  //把jQuery这个函数放到window去，才可以随时用$或者jQuert调用
+		
+	})();
+
+
+</script>
+</body>
+</html>
